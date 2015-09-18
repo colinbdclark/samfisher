@@ -1,0 +1,21 @@
+{
+  "name": "samfisher",
+  "version": "1.0.0",
+  "description": "Boneheaded Web-based motion analysis",
+  "author": "Colin Clark",
+  "homepage": "http://flockingjs.org/",
+  "repository": {
+      "type": "git",
+      "url": "git://github.com/colinbdclark/samfisher.git"
+  },
+  "bugs": "http://github.com/colinbdclark/samfisher/issues",
+  "license": "(MIT OR GPL-2.0)",
+  "keywords": [],
+  "readmeFilename": "README.md",
+  "main": "src/samfisher.js",
+  "devDependencies": {},
+  "dependencies": {
+      "bergson": "colinbdclark/bergson#infusion-2.x",
+      "jquery": "2.1.4"
+  }
+}
