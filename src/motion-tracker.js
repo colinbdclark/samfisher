@@ -21,11 +21,20 @@ var fisher = fisher || {};
     "use strict";
 
     fluid.defaults("fisher.motionTracker", {
-        gradeNames: "fisher.spatial",
+        gradeNames: "fluid.modelComponent",
+
+        channelOffset: 4,
+        threshold: Math.round(0.1 * 255),
+        numPixels: "@expand:fisher.motionTracker.calcNumPixels({canvas}.options.dimensions)",
 
         components: {
             scheduler: {
-                type: "fisher.frameScheduler"
+                type: "fisher.frameScheduler",
+                options: {
+                    events: {
+                        onNextFrame: "{motionTracker}.events.onNextFrame"
+                    }
+                }
             },
 
             streamer: {
@@ -33,38 +42,81 @@ var fisher = fisher || {};
             },
 
             canvas: {
-                type: "fisher.canvas",
-                options: {
-                    model: {
-                        dimensions: "{motionTracker}.model.dimensions"
-                    }
-                }
+                type: "fisher.canvas"
             }
         },
 
+        invokers: {
+            motionIndex: {
+                funcName: "fisher.motionTracker.motionIndex",
+                args: [
+                    "{that}.options.channelOffset",
+                    "{that}.options.threshold",
+                    "{that}.options.numPixels",
+                    "{arguments}.0",
+                    "{that}.previous"
+                ]
+            }
+        },
 
         events: {
-            onMotionUpdate: null
+            onMotionUpdate: null,
+            onNextFrame: null
         },
 
         listeners: {
-            "{scheduler}.events.onNextFrame": [
+            onNextFrame: [
                 "{canvas}.drawElement({that}.streamer.element)",
                 "fisher.motionTracker.track({that})"
+            ],
+
+            onMotionUpdate: [
+                {
+                    "this": "console",
+                    method: "log"
+                }
             ]
         }
     });
 
-    fisher.motionTracker.track = function (that) {
-        var pixels = that.canvas.getPixels(),
-            motionIndex = fisher.motionTracker.motionIndex(pixels, that.previousPixels);
-
-        that.events.onMotionUpdate.fire(motionIndex);
-        that.previousPixels = pixels;
+    fisher.motionTracker.calcNumPixels = function (dimensions) {
+        return dimensions.height * dimensions.width;
     };
 
-    // TODO: Implement
-    fisher.motionTracker.motionIndex = function () {
-        return 0.0;
+    fisher.motionTracker.track = function (that) {
+        var current = that.canvas.getPixels().data,
+            motionIndex = that.motionIndex(current);
+
+        that.events.onMotionUpdate.fire(motionIndex);
+        that.previous = current;
+    };
+
+    fisher.motionTracker.motionIndex = function (channelOffset, threshold,
+        numPixels, currentPixels, previousPixels) {
+        if (!previousPixels) {
+            return 0;
+        }
+
+        var numMovedPixels = 0,
+            i, gi, bi,
+            r, g, b,
+            lum;
+
+        for (i = 0; i < currentPixels.length; i += channelOffset) {
+            gi = i + 1;
+            bi = i + 2;
+
+            r = previousPixels[i] - currentPixels[i];
+            g = previousPixels[gi] - currentPixels[gi];
+            b = previousPixels[bi] - currentPixels[bi];
+
+            lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
+
+            if (lum >= threshold) {
+                numMovedPixels++;
+            }
+        }
+
+        return numMovedPixels / numPixels;
     };
 }());

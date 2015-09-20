@@ -23,7 +23,7 @@ var fisher = fisher || {};
     fluid.defaults("fisher.frameScheduler", {
         gradeNames: "berg.scheduler",
 
-        freq: 1,
+        freq: 1/300, // Why?
 
         components: {
             clock: {

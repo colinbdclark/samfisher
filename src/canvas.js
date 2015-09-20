@@ -21,17 +21,33 @@ var fisher = fisher || {};
     "use strict";
 
     fluid.defaults("fisher.canvas", {
-        gradeNames: "fisher.spatial",
+        gradeNames: "fluid.component",
+
+        dimensions: {
+            height: 480,
+            width: 640
+        },
+
+        members: {
+            element: {
+                expander: {
+                    funcName: "fisher.canvas.createCanvas",
+                    args: ["{that}.options.markup", "{that}.options.dimensions"]
+                }
+            },
+
+            context: {
+                expander: {
+                    "this": "{that}.element",
+                    method: "getContext",
+                    args: "2d"
+                }
+            }
+        },
 
         invokers: {
             drawElement: "fisher.canvas.drawElement({that}, {arguments}.0)",
             getPixels: "fisher.canvas.getPixels({that})"
-        },
-
-        listeners: {
-            onCreate: [
-                "fisher.canvas.createCanvas({that}, {motionTracker}.model.dimensions)"
-            ]
         },
 
         markup: {
@@ -39,22 +55,17 @@ var fisher = fisher || {};
         }
     });
 
-    fisher.canvas.createCanvas = function (that, dimensions) {
-        var markup = fluid.stringTemplate(that.options.markup.canvas, dimensions),
-            canvas = $(markup);
-
-        // TODO: Remove that-bashing.
-        that.element = canvas[0];
-        that.context = that.element.getContext("2d");
-
-        return that.element;
+    fisher.canvas.createCanvas = function (markup, dimensions) {
+        return $(fluid.stringTemplate(markup.canvas, dimensions))[0];
     };
 
     fisher.canvas.drawElement = function (that, element) {
-        that.context.drawImage(element, 0, 0, that.model.dimensions.width, that.model.dimensions.height);
+        that.context.drawImage(element, 0, 0,
+            that.options.dimensions.width, that.options.dimensions.height);
     };
 
     fisher.canvas.getPixels = function (that) {
-        return that.context.getImageData(0, 0, that.model.dimensions.width, that.model.dimensions.height);
+        return that.context.getImageData(0, 0,
+            that.options.dimensions.width, that.options.dimensions.height);
     };
 }());
