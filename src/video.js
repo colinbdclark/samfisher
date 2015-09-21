@@ -20,7 +20,8 @@ var fisher = fisher || {};
 
     "use strict";
 
-    navigator.getMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    navigator.getMedia = navigator.getUserMedia ||
+        navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
     fluid.defaults("fisher.liveVideo", {
         gradeNames: "fluid.modelComponent",
