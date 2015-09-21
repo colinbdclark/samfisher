@@ -5,7 +5,7 @@
  * github.com/colinbdclark/samfisher
  */
 
-/*global require, $*/
+/*global require, $, ImageData*/
 /*jshint white: false, newcap: true, regexp: true, browser: true,
     forin: false, nomen: true, bitwise: false, maxerr: 100,
     indent: 4, plusplus: false, curly: true, eqeqeq: true,
@@ -47,7 +47,8 @@ var fisher = fisher || {};
 
         invokers: {
             drawElement: "fisher.canvas.drawElement({that}, {arguments}.0)",
-            getPixels: "fisher.canvas.getPixels({that})"
+            getPixels: "fisher.canvas.getPixels({that})",
+            putPixels: "fisher.canvas.putPixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)"
         },
 
         markup: {
@@ -68,4 +69,14 @@ var fisher = fisher || {};
         return that.context.getImageData(0, 0,
             that.options.dimensions.width, that.options.dimensions.height);
     };
+
+    fisher.canvas.putPixels = function (that, pixels, x, y) {
+        var d = that.options.dimensions;
+        x = x || 0;
+        y = y || 0;
+
+        var id = new ImageData(pixels, d.width, d.height);
+        that.context.putImageData(id, x, y);
+    };
+
 }());

@@ -29,16 +29,6 @@ var fisher = fisher || {};
             clock: {
                 type: "berg.clock.raf"
             }
-        },
-
-        events: {
-            onNextFrame: null
-        },
-
-        listeners: {
-            onCreate: [
-                "{that}.repeat({that}.options.freq, {that}.events.onNextFrame.fire)"
-            ]
         }
     });
 

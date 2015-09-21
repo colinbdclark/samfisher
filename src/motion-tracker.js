@@ -1,5 +1,5 @@
 /*
- * Sam Fisher Pixel Extractor
+ * Sam Fisher Motion Tracker
  * Copyright 2015 Colin Clark
  * Distributed under the MIT and GPL2 licenses
  * github.com/colinbdclark/samfisher
@@ -23,18 +23,32 @@ var fisher = fisher || {};
     fluid.defaults("fisher.motionTracker", {
         gradeNames: "fluid.modelComponent",
 
-        channelOffset: 4,
-        threshold: Math.round(0.1 * 255),
-        numPixels: "@expand:fisher.motionTracker.calcNumPixels({canvas}.options.dimensions)",
+        threshold: Math.round(0.2 * 255),
+
+        dimensions: {
+            width: 640,
+            height: 480
+        },
+
+        members: {
+            current: "@expand:fisher.buffer(1, {that}.options.dimensions)",
+            previous: "@expand:fisher.buffer(1, {that}.options.dimensions)"
+        },
+
+        distributeOptions: [
+            {
+                target: "{that fisher.trackedRegion}.options.frameDimensions",
+                source: "{that}.options.dimensions"
+            },
+            {
+                target: "{that fisher.trackedRegion}.options.threshold",
+                source: "{that}.options.threshold"
+            }
+        ],
 
         components: {
             scheduler: {
-                type: "fisher.frameScheduler",
-                options: {
-                    events: {
-                        onNextFrame: "{motionTracker}.events.onNextFrame"
-                    }
-                }
+                type: "fisher.frameScheduler"
             },
 
             streamer: {
@@ -42,25 +56,19 @@ var fisher = fisher || {};
             },
 
             canvas: {
-                type: "fisher.canvas"
-            }
-        },
+                type: "fisher.canvas",
+                options: {
+                    dimensions: "{that}.options.dimensions"
+                }
+            },
 
-        invokers: {
-            motionIndex: {
-                funcName: "fisher.motionTracker.motionIndex",
-                args: [
-                    "{that}.options.channelOffset",
-                    "{that}.options.threshold",
-                    "{that}.options.numPixels",
-                    "{arguments}.0",
-                    "{that}.previous"
-                ]
+            frameTracker: {
+                type: "fisher.frameTracker.stereo"
             }
         },
 
         events: {
-            onMotionUpdate: null,
+            onMotionUpdate: "{frameTracker}.events.onMotionUpdate",
             onNextFrame: null
         },
 
@@ -70,11 +78,9 @@ var fisher = fisher || {};
                 "fisher.motionTracker.track({that})"
             ],
 
-            onMotionUpdate: [
-                {
-                    "this": "console",
-                    method: "log"
-                }
+            onCreate: [
+                "{scheduler}.start()",
+                "{scheduler}.repeat({scheduler}.options.freq, {that}.events.onNextFrame.fire)"
             ]
         }
     });
@@ -84,39 +90,79 @@ var fisher = fisher || {};
     };
 
     fisher.motionTracker.track = function (that) {
-        var current = that.canvas.getPixels().data,
-            motionIndex = that.motionIndex(current);
+        var pixels = that.canvas.getPixels().data;
 
-        that.events.onMotionUpdate.fire(motionIndex);
-        that.previous = current;
+        fisher.greyscale(pixels, that.current);
+        fisher.blur(1, that.current, that.current, that.options.dimensions);
+
+        that.frameTracker.track(that.current, that.previous);
+
+        that.previous.set(that.current);
     };
 
-    fisher.motionTracker.motionIndex = function (channelOffset, threshold,
-        numPixels, currentPixels, previousPixels) {
-        if (!previousPixels) {
-            return 0;
+
+    fluid.defaults("fisher.frameTracker", {
+        gradeNames: "fluid.component",
+
+        invokers: {
+            track: {
+                funcName: "fluid.notImplemented"
+            }
+        },
+
+        events: {
+            onMotionUpdate: null
         }
+    });
 
-        var numMovedPixels = 0,
-            i, gi, bi,
-            r, g, b,
-            lum;
+    fluid.defaults("fisher.frameTracker.mono", {
+        gradenames: "fisher.frameTracker",
 
-        for (i = 0; i < currentPixels.length; i += channelOffset) {
-            gi = i + 1;
-            bi = i + 2;
+        components: {
+            region: {
+                type: "fisher.trackedRegion"
+            }
+        },
 
-            r = previousPixels[i] - currentPixels[i];
-            g = previousPixels[gi] - currentPixels[gi];
-            b = previousPixels[bi] - currentPixels[bi];
-
-            lum = r * 0.2126 + g * 0.7152 + b * 0.0722;
-
-            if (lum >= threshold) {
-                numMovedPixels++;
+        invokers: {
+            track: {
+                funcName: "fisher.frameTracker.mono.track",
+                args: ["{that}", "{arguments}.0", "{arguments}.1"]
             }
         }
+    });
 
-        return numMovedPixels / numPixels;
+    fisher.frameTracker.mono.track = function (that, current, previous) {
+        var motionIndex = that.region.motionIndex(current, previous);
+        that.events.onMotionUpdate.fire(motionIndex);
+    };
+
+
+    fluid.defaults("fisher.frameTracker.stereo", {
+        gradeNames: "fisher.frameTracker",
+
+        components: {
+            leftRegion: {
+                type: "fisher.trackedRegion.leftHalf"
+            },
+
+            rightRegion: {
+                type: "fisher.trackedRegion.rightHalf"
+            }
+        },
+
+        invokers: {
+            track: {
+                funcName: "fisher.frameTracker.stereo.track",
+                args: ["{that}", "{arguments}.0", "{arguments}.1"]
+            }
+        }
+    });
+
+    fisher.frameTracker.stereo.track = function (that, current, previous) {
+        var l = that.leftRegion.motionIndex(current, previous),
+            r = that.rightRegion.motionIndex(current, previous);
+
+        that.events.onMotionUpdate.fire(l, r);
     };
 }());
