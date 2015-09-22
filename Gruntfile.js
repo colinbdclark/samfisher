@@ -89,7 +89,7 @@ module.exports = function(grunt) {
 
         watch: {
             scripts: {
-                files: ["src/**/*.js", "third-party/**/*.js", "Gruntfile.js"],
+                files: ["src/**/*.js", "third-party/**/*.js", "node_modules/**/*.js", "Gruntfile.js"],
                 tasks: ["default"],
                 options: {
                     spawn: false
@@ -110,7 +110,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-contrib-watch");
-    grunt.loadNpmTasks("grunt-gpii");
 
     grunt.registerTask("default", ["clean", "concat", "uglify", "jshint"]);
 };

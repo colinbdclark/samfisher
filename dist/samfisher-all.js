@@ -15897,7 +15897,7 @@ var fluid = fluid || require("infusion"),
     // to performance.now() once Safari supports it
     // in Web Workers.
     berg.clock.realtime.now = function () {
-        return performance.now();
+        return performance.now() / 1000;
     };
 
     // Terrible hack to workaround Safari's lack of
@@ -16748,7 +16748,7 @@ var fluid = fluid || require("infusion"),
     berg.clock.raf.tick = function (that) {
         berg.clock.raf.requestNextTick(that);
 
-        var now = performance.now();
+        var now = performance.now() / 1000;
         that.time = now;
         that.events.onTick.fire(now, that.freq);
     };
@@ -17231,7 +17231,7 @@ var fisher = fisher || {};
     fluid.defaults("fisher.frameScheduler", {
         gradeNames: "berg.scheduler",
 
-        freq: 1/300, // Why?
+        freq: 15,
 
         components: {
             clock: {
