@@ -93,7 +93,7 @@ var fisher = fisher || {};
         var pixels = that.canvas.getPixels().data;
 
         fisher.greyscale(pixels, that.current);
-        fisher.blur(1, that.current, that.current, that.options.dimensions);
+        fisher.filter.mean(1, that.current, that.current, that.options.dimensions);
 
         that.frameTracker.track(that.current, that.previous);
 
