@@ -17173,8 +17173,8 @@ var fisher = fisher || {};
      * @param Uint8ClampedArray target the greyscale copy
      */
     fisher.greyscale = function (source, target) {
-        for (var i = 0, j = 0; i < source.length; i += 4, j++) {
-            target[j] = fisher.luminance(i, source);
+        for (var i = 0; i < target.length; i++) {
+            target[i] = fisher.luminance(i * 4, source);
         }
     };
 
@@ -17358,7 +17358,7 @@ var fisher = fisher || {};
 
     fisher.canvas.getPixels = function (that) {
         return that.context.getImageData(0, 0,
-            that.options.dimensions.width, that.options.dimensions.height);
+            that.options.dimensions.width, that.options.dimensions.height).data;
     };
 
     fisher.canvas.putPixels = function (that, pixels, x, y) {
@@ -17604,20 +17604,10 @@ var fisher = fisher || {};
             }
         },
 
-        members: {
-            buffer: {
-                expander: {
-                    funcName: "fisher.createColourImageBuffer",
-                    args: ["{that}.options.dimensions"]
-                }
-            }
-        },
-
         invokers: {
             motionIndex: {
                 funcName: "fisher.trackedRegion.motionIndex",
                 args: [
-                    "{that}.buffer",
                     "{arguments}.0",
                     "{arguments}.1",
                     "{that}.options"
@@ -17631,17 +17621,15 @@ var fisher = fisher || {};
      * by determining the absolute difference between
      * the specified image buffers.
      *
-     * @param Uint8ClampedArray buffer this region's working image buffer
      * @param Uint8ClampedArray current the current frame
      * @param Uint8ClampedArray previous the previous frame
      * @param Object o this region's options
      */
-    fisher.trackedRegion.motionIndex = function (buffer, current, previous, o) {
+    fisher.trackedRegion.motionIndex = function (current, previous, o) {
         var d = o.dimensions;
 
         var rowEnd = d.yOffset + d.height,
             numMovedPixels = 0,
-            localOffset = 0,
             colStart,
             colEnd,
             diff;
@@ -17650,14 +17638,9 @@ var fisher = fisher || {};
             colStart = (o.frameDimensions.width * rowIdx) + d.xOffset;
             colEnd = colStart + d.width;
 
-            for (var i = colStart; i < colEnd; i++, localOffset += 4) {
+            for (var i = colStart; i < colEnd; i++) {
                 // Get the difference between frames.
                 diff = fisher.difference(i, current, previous);
-
-                // TODO: remove after debugging.
-                buffer[localOffset] = diff;
-                buffer[localOffset + 1] = diff;
-                buffer[localOffset + 2] = diff;
 
                 // Count the pixel as showing movement
                 // if it has changed more than the threshold amount.
@@ -17785,7 +17768,7 @@ var fisher = fisher || {};
     };
 
     fisher.motionTracker.track = function (that) {
-        var pixels = that.canvas.getPixels().data;
+        var pixels = that.canvas.getPixels();
 
         fisher.greyscale(pixels, that.current);
         fisher.filter.mean(1, that.current, that.current, that.options.dimensions);

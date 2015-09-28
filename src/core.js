@@ -59,8 +59,8 @@ var fisher = fisher || {};
      * @param Uint8ClampedArray target the greyscale copy
      */
     fisher.greyscale = function (source, target) {
-        for (var i = 0, j = 0; i < source.length; i += 4, j++) {
-            target[j] = fisher.luminance(i, source);
+        for (var i = 0; i < target.length; i++) {
+            target[i] = fisher.luminance(i * 4, source);
         }
     };
 

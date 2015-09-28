@@ -67,7 +67,7 @@ var fisher = fisher || {};
 
     fisher.canvas.getPixels = function (that) {
         return that.context.getImageData(0, 0,
-            that.options.dimensions.width, that.options.dimensions.height);
+            that.options.dimensions.width, that.options.dimensions.height).data;
     };
 
     fisher.canvas.putPixels = function (that, pixels, x, y) {

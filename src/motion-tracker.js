@@ -90,7 +90,7 @@ var fisher = fisher || {};
     };
 
     fisher.motionTracker.track = function (that) {
-        var pixels = that.canvas.getPixels().data;
+        var pixels = that.canvas.getPixels();
 
         fisher.greyscale(pixels, that.current);
         fisher.filter.mean(1, that.current, that.current, that.options.dimensions);

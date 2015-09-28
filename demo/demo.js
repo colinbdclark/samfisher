@@ -1,3 +1,4 @@
+/*global fisher*/
 (function () {
     "use strict";
 
@@ -37,17 +38,27 @@
             ],
 
             "{motionTracker}.events.onMotionUpdate": [
-                "{leftCanvas}.putPixels({motionTracker}.frameTracker.leftRegion.buffer)",
-                "{rightCanvas}.putPixels({motionTracker}.frameTracker.rightRegion.buffer)",
-                {
-                    "this": "console",
-                    method: "log"
-                }
+                "fisher.demo.showDifference({leftCanvas}, {arguments}.0)",
+                "fisher.demo.showDifference({rightCanvas}, {arguments}.1)"
             ]
         }
     });
 
     fisher.demo.makeVisible = function (selector, element) {
         $(selector).append(element);
+    };
+
+    fisher.demo.showDifference = function (canvas, difference) {
+        var pixels = canvas.getPixels(),
+            val = (difference * 255) | 0;
+
+        for (var i = 0; i < pixels.length; i += 4) {
+            pixels[i] = val;
+            pixels[i + 1] = val;
+            pixels[i + 2] = val;
+            pixels[i + 3] = 255;
+        }
+
+        canvas.putPixels(pixels);
     };
 }());
