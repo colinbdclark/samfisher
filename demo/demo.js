@@ -14,8 +14,8 @@
                 type: "fisher.canvas",
                 options: {
                     dimensions: {
-                        height: 480,
-                        width: 320
+                        height: 240,
+                        width: 160
                     }
                 }
             },
@@ -24,8 +24,8 @@
                 type: "fisher.canvas",
                 options: {
                     dimensions: {
-                        height: 480,
-                        width: 320
+                        height: 240,
+                        width: 160
                     }
                 }
             }

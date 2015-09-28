@@ -24,8 +24,8 @@ var fisher = fisher || {};
         gradeNames: "fluid.component",
 
         dimensions: {
-            height: 480,
-            width: 640
+            height: 240,
+            width: 320
         },
 
         members: {

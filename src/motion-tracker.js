@@ -26,8 +26,8 @@ var fisher = fisher || {};
         threshold: Math.round(0.2 * 255),
 
         dimensions: {
-            width: 640,
-            height: 480
+            width: 320,
+            height: 240
         },
 
         members: {

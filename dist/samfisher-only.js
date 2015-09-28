@@ -202,8 +202,8 @@ var fisher = fisher || {};
         gradeNames: "fluid.component",
 
         dimensions: {
-            height: 480,
-            width: 640
+            height: 240,
+            width: 320
         },
 
         members: {
@@ -471,13 +471,13 @@ var fisher = fisher || {};
         gradeNames: "fluid.component",
 
         frameDimensions: {
-            height: 480,
-            width: 640
+            height: 240,
+            width: 320
         },
 
         dimensions: {
-            height: 480,
-            width: 640,
+            height: 240,
+            width: 320,
             xOffset: 0,
             yOffset: 0
         },
@@ -544,8 +544,8 @@ var fisher = fisher || {};
         gradeNames: "fisher.trackedRegion",
 
         dimensions: {
-            height: 480,
-            width: 320,
+            height: 240,
+            width: 160,
             xOffset: 0,
             yOffset: 0
         }
@@ -555,9 +555,9 @@ var fisher = fisher || {};
         gradeNames: "fisher.trackedRegion",
 
         dimensions: {
-            height: 480,
-            width: 320,
-            xOffset: 320,
+            height: 240,
+            width: 160,
+            xOffset: 160,
             yOffset: 0
         }
     });
@@ -591,8 +591,8 @@ var fisher = fisher || {};
         threshold: Math.round(0.2 * 255),
 
         dimensions: {
-            width: 640,
-            height: 480
+            width: 320,
+            height: 240
         },
 
         members: {
