@@ -95,24 +95,24 @@ var fisher = fisher || {};
 
     fisher.filter.convolve = function (kernel, source, target, d) {
         var kW = Math.sqrt(kernel.length),
-            halfKW = (kW / 2) | 0,
+            halfKW = Math.floor(kW / 2),
             h = d.height,
             w = d.width,
-            lastY = h - 1,
-            lastX = w - 1,
             accum;
 
-        for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++) {
+        for (var y = halfKW; y < h - halfKW - 1; y++) {
+            for (var x = halfKW; x < w - halfKW - 1; x++) {
                 accum = 0;
 
                 // Apply the kernel to the source image.
                 for (var kY = 0; kY < kW; kY++) {
+                    var sky = y + kY - halfKW;
+                    var skw = sky * w;
+
                     for (var kX = 0; kX < kW; kX++) {
                         // TODO: Faster guarding against image boundaries?
-                        var sky = Math.min(lastY, Math.max(0, y + kY - halfKW));
-                        var skx = Math.min(lastX, Math.max(0, x + kX - halfKW));
-                        var skIdx = sky * w + skx;
+                        var skx = x + kX - halfKW;
+                        var skIdx = skw + skx;
                         var kIdx = kY * kW + kX;
 
                         accum += source[skIdx] * kernel[kIdx];
@@ -121,7 +121,7 @@ var fisher = fisher || {};
 
                 // Output the result of the kernel to the current target pixel.
                 var soIdx = (y * w + x);
-                source[soIdx] = accum;
+                target[soIdx] = accum;
             }
         }
     };
