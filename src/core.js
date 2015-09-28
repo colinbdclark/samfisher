@@ -110,11 +110,8 @@ var fisher = fisher || {};
                     var skw = sky * w;
 
                     for (var kX = 0; kX < kW; kX++) {
-                        // TODO: Faster guarding against image boundaries?
-                        var skx = x + kX - halfKW;
-                        var skIdx = skw + skx;
+                        var skIdx = skw + (x + kX - halfKW);
                         var kIdx = kY * kW + kX;
-
                         accum += source[skIdx] * kernel[kIdx];
                     }
                 }

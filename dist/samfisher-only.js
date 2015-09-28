@@ -109,13 +109,10 @@ var fisher = fisher || {};
                 for (var kY = 0; kY < kW; kY++) {
                     var sky = y + kY - halfKW;
                     var skw = sky * w;
-                    
-                    for (var kX = 0; kX < kW; kX++) {
-                        // TODO: Faster guarding against image boundaries?
-                        var skx = x + kX - halfKW;
-                        var skIdx = skw + skx;
-                        var kIdx = kY * kW + kX;
 
+                    for (var kX = 0; kX < kW; kX++) {
+                        var skIdx = skw + (x + kX - halfKW);
+                        var kIdx = kY * kW + kX;
                         accum += source[skIdx] * kernel[kIdx];
                     }
                 }
@@ -597,6 +594,7 @@ var fisher = fisher || {};
 
         members: {
             current: "@expand:fisher.buffer(1, {that}.options.dimensions)",
+            working: "@expand:fisher.buffer(1, {that}.options.dimensions)",
             previous: "@expand:fisher.buffer(1, {that}.options.dimensions)"
         },
 
@@ -657,9 +655,8 @@ var fisher = fisher || {};
     fisher.motionTracker.track = function (that) {
         var pixels = that.canvas.getPixels();
 
-        fisher.greyscale(pixels, that.current);
-        fisher.filter.mean(1, that.current, that.current, that.options.dimensions);
-
+        fisher.greyscale(pixels, that.working);
+        fisher.filter.mean(that.working, that.current, that.options.dimensions);
         that.frameTracker.track(that.current, that.previous);
 
         that.previous.set(that.current);
