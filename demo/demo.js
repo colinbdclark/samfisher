@@ -10,6 +10,16 @@
                 type: "fisher.motionTracker"
             },
 
+            workingCanvas: {
+                type: "fisher.canvas",
+                options: {
+                    dimensions: {
+                        height: 240,
+                        width: 320
+                    }
+                }
+            },
+
             leftCanvas: {
                 type: "fisher.canvas",
                 options: {
@@ -33,11 +43,13 @@
 
         listeners: {
             onCreate: [
+                "fisher.demo.makeVisible(#diffCanvases, {workingCanvas}.element)",
                 "fisher.demo.makeVisible(#diffCanvases, {leftCanvas}.element)",
                 "fisher.demo.makeVisible(#diffCanvases, {rightCanvas}.element)"
             ],
 
             "{motionTracker}.events.onMotionUpdate": [
+                "{workingCanvas}.putMonochromePixels({motionTracker}.current)",
                 "fisher.demo.showDifference({leftCanvas}, {arguments}.0)",
                 "fisher.demo.showDifference({rightCanvas}, {arguments}.1)"
             ]

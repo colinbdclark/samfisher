@@ -48,7 +48,8 @@ var fisher = fisher || {};
         invokers: {
             drawElement: "fisher.canvas.drawElement({that}, {arguments}.0)",
             getPixels: "fisher.canvas.getPixels({that})",
-            putPixels: "fisher.canvas.putPixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)"
+            putPixels: "fisher.canvas.putPixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)",
+            putMonochromePixels: "fisher.canvas.putMonochromePixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)"
         },
 
         markup: {
@@ -79,4 +80,19 @@ var fisher = fisher || {};
         that.context.putImageData(id, x, y);
     };
 
+    fisher.canvas.putMonochromePixels = function (that, pixels, x, y) {
+        var rgbaPixels = fisher.canvas.getPixels(that);
+
+        for (var i = 0; i < pixels.length; i++) {
+            var rgbaIdx = i * 4,
+                pixel = pixels[i];
+
+            rgbaPixels[rgbaIdx] = pixel;
+            rgbaPixels[rgbaIdx + 1] = pixel;
+            rgbaPixels[rgbaIdx + 2] = pixel;
+            rgbaPixels[rgbaIdx + 3] = 255;
+        }
+
+        fisher.canvas.putPixels(that, rgbaPixels, x, y);
+    };
 }());
