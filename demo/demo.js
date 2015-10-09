@@ -1,3 +1,4 @@
+/*global fisher*/
 (function () {
     "use strict";
 
@@ -9,12 +10,22 @@
                 type: "fisher.motionTracker"
             },
 
+            workingCanvas: {
+                type: "fisher.canvas",
+                options: {
+                    dimensions: {
+                        height: 240,
+                        width: 320
+                    }
+                }
+            },
+
             leftCanvas: {
                 type: "fisher.canvas",
                 options: {
                     dimensions: {
-                        height: 480,
-                        width: 320
+                        height: 240,
+                        width: 160
                     }
                 }
             },
@@ -23,8 +34,8 @@
                 type: "fisher.canvas",
                 options: {
                     dimensions: {
-                        height: 480,
-                        width: 320
+                        height: 240,
+                        width: 160
                     }
                 }
             }
@@ -32,22 +43,34 @@
 
         listeners: {
             onCreate: [
+                "fisher.demo.makeVisible(#diffCanvases, {workingCanvas}.element)",
                 "fisher.demo.makeVisible(#diffCanvases, {leftCanvas}.element)",
                 "fisher.demo.makeVisible(#diffCanvases, {rightCanvas}.element)"
             ],
 
             "{motionTracker}.events.onMotionUpdate": [
-                "{leftCanvas}.putPixels({motionTracker}.frameTracker.leftRegion.buffer)",
-                "{rightCanvas}.putPixels({motionTracker}.frameTracker.rightRegion.buffer)",
-                {
-                    "this": "console",
-                    method: "log"
-                }
+                "{workingCanvas}.putMonochromePixels({motionTracker}.current)",
+                "fisher.demo.showDifference({leftCanvas}, {arguments}.0)",
+                "fisher.demo.showDifference({rightCanvas}, {arguments}.1)"
             ]
         }
     });
 
     fisher.demo.makeVisible = function (selector, element) {
         $(selector).append(element);
+    };
+
+    fisher.demo.showDifference = function (canvas, difference) {
+        var pixels = canvas.getPixels(),
+            val = (difference * 255) | 0;
+
+        for (var i = 0; i < pixels.length; i += 4) {
+            pixels[i] = val;
+            pixels[i + 1] = val;
+            pixels[i + 2] = val;
+            pixels[i + 3] = 255;
+        }
+
+        canvas.putPixels(pixels);
     };
 }());

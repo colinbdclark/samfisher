@@ -17173,8 +17173,8 @@ var fisher = fisher || {};
      * @param Uint8ClampedArray target the greyscale copy
      */
     fisher.greyscale = function (source, target) {
-        for (var i = 0, j = 0; i < source.length; i += 4, j++) {
-            target[j] = fisher.luminance(i, source);
+        for (var i = 0; i < target.length; i++) {
+            target[i] = fisher.luminance(i * 4, source);
         }
     };
 
@@ -17209,33 +17209,30 @@ var fisher = fisher || {};
 
     fisher.filter.convolve = function (kernel, source, target, d) {
         var kW = Math.sqrt(kernel.length),
-            halfKW = (kW / 2) | 0,
+            halfKW = Math.floor(kW / 2),
             h = d.height,
             w = d.width,
-            lastY = h - 1,
-            lastX = w - 1,
             accum;
 
-        for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++) {
+        for (var y = halfKW; y < h - halfKW - 1; y++) {
+            for (var x = halfKW; x < w - halfKW - 1; x++) {
                 accum = 0;
 
                 // Apply the kernel to the source image.
                 for (var kY = 0; kY < kW; kY++) {
-                    for (var kX = 0; kX < kW; kX++) {
-                        // TODO: Faster guarding against image boundaries?
-                        var sky = Math.min(lastY, Math.max(0, y + kY - halfKW));
-                        var skx = Math.min(lastX, Math.max(0, x + kX - halfKW));
-                        var skIdx = sky * w + skx;
-                        var kIdx = kY * kW + kX;
+                    var sky = y + kY - halfKW;
+                    var skw = sky * w;
 
+                    for (var kX = 0; kX < kW; kX++) {
+                        var skIdx = skw + (x + kX - halfKW);
+                        var kIdx = kY * kW + kX;
                         accum += source[skIdx] * kernel[kIdx];
                     }
                 }
 
                 // Output the result of the kernel to the current target pixel.
                 var soIdx = (y * w + x);
-                source[soIdx] = accum;
+                target[soIdx] = accum;
             }
         }
     };
@@ -17315,8 +17312,8 @@ var fisher = fisher || {};
         gradeNames: "fluid.component",
 
         dimensions: {
-            height: 480,
-            width: 640
+            height: 240,
+            width: 320
         },
 
         members: {
@@ -17339,7 +17336,8 @@ var fisher = fisher || {};
         invokers: {
             drawElement: "fisher.canvas.drawElement({that}, {arguments}.0)",
             getPixels: "fisher.canvas.getPixels({that})",
-            putPixels: "fisher.canvas.putPixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)"
+            putPixels: "fisher.canvas.putPixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)",
+            putMonochromePixels: "fisher.canvas.putMonochromePixels({that}, {arguments}.0, {arguments}.1, {arguments}.2)"
         },
 
         markup: {
@@ -17358,7 +17356,7 @@ var fisher = fisher || {};
 
     fisher.canvas.getPixels = function (that) {
         return that.context.getImageData(0, 0,
-            that.options.dimensions.width, that.options.dimensions.height);
+            that.options.dimensions.width, that.options.dimensions.height).data;
     };
 
     fisher.canvas.putPixels = function (that, pixels, x, y) {
@@ -17370,6 +17368,21 @@ var fisher = fisher || {};
         that.context.putImageData(id, x, y);
     };
 
+    fisher.canvas.putMonochromePixels = function (that, pixels, x, y) {
+        var rgbaPixels = fisher.canvas.getPixels(that);
+
+        for (var i = 0; i < pixels.length; i++) {
+            var rgbaIdx = i * 4,
+                pixel = pixels[i];
+
+            rgbaPixels[rgbaIdx] = pixel;
+            rgbaPixels[rgbaIdx + 1] = pixel;
+            rgbaPixels[rgbaIdx + 2] = pixel;
+            rgbaPixels[rgbaIdx + 3] = 255;
+        }
+
+        fisher.canvas.putPixels(that, rgbaPixels, x, y);
+    };
 }());
 
 /*
@@ -17584,13 +17597,13 @@ var fisher = fisher || {};
         gradeNames: "fluid.component",
 
         frameDimensions: {
-            height: 480,
-            width: 640
+            height: 240,
+            width: 320
         },
 
         dimensions: {
-            height: 480,
-            width: 640,
+            height: 240,
+            width: 320,
             xOffset: 0,
             yOffset: 0
         },
@@ -17604,20 +17617,10 @@ var fisher = fisher || {};
             }
         },
 
-        members: {
-            buffer: {
-                expander: {
-                    funcName: "fisher.createColourImageBuffer",
-                    args: ["{that}.options.dimensions"]
-                }
-            }
-        },
-
         invokers: {
             motionIndex: {
                 funcName: "fisher.trackedRegion.motionIndex",
                 args: [
-                    "{that}.buffer",
                     "{arguments}.0",
                     "{arguments}.1",
                     "{that}.options"
@@ -17631,17 +17634,15 @@ var fisher = fisher || {};
      * by determining the absolute difference between
      * the specified image buffers.
      *
-     * @param Uint8ClampedArray buffer this region's working image buffer
      * @param Uint8ClampedArray current the current frame
      * @param Uint8ClampedArray previous the previous frame
      * @param Object o this region's options
      */
-    fisher.trackedRegion.motionIndex = function (buffer, current, previous, o) {
+    fisher.trackedRegion.motionIndex = function (current, previous, o) {
         var d = o.dimensions;
 
         var rowEnd = d.yOffset + d.height,
             numMovedPixels = 0,
-            localOffset = 0,
             colStart,
             colEnd,
             diff;
@@ -17650,14 +17651,9 @@ var fisher = fisher || {};
             colStart = (o.frameDimensions.width * rowIdx) + d.xOffset;
             colEnd = colStart + d.width;
 
-            for (var i = colStart; i < colEnd; i++, localOffset += 4) {
+            for (var i = colStart; i < colEnd; i++) {
                 // Get the difference between frames.
                 diff = fisher.difference(i, current, previous);
-
-                // TODO: remove after debugging.
-                buffer[localOffset] = diff;
-                buffer[localOffset + 1] = diff;
-                buffer[localOffset + 2] = diff;
 
                 // Count the pixel as showing movement
                 // if it has changed more than the threshold amount.
@@ -17674,8 +17670,8 @@ var fisher = fisher || {};
         gradeNames: "fisher.trackedRegion",
 
         dimensions: {
-            height: 480,
-            width: 320,
+            height: 240,
+            width: 160,
             xOffset: 0,
             yOffset: 0
         }
@@ -17685,9 +17681,9 @@ var fisher = fisher || {};
         gradeNames: "fisher.trackedRegion",
 
         dimensions: {
-            height: 480,
-            width: 320,
-            xOffset: 320,
+            height: 240,
+            width: 160,
+            xOffset: 160,
             yOffset: 0
         }
     });
@@ -17721,12 +17717,13 @@ var fisher = fisher || {};
         threshold: Math.round(0.2 * 255),
 
         dimensions: {
-            width: 640,
-            height: 480
+            width: 320,
+            height: 240
         },
 
         members: {
             current: "@expand:fisher.buffer(1, {that}.options.dimensions)",
+            working: "@expand:fisher.buffer(1, {that}.options.dimensions)",
             previous: "@expand:fisher.buffer(1, {that}.options.dimensions)"
         },
 
@@ -17785,11 +17782,10 @@ var fisher = fisher || {};
     };
 
     fisher.motionTracker.track = function (that) {
-        var pixels = that.canvas.getPixels().data;
+        var pixels = that.canvas.getPixels();
 
-        fisher.greyscale(pixels, that.current);
-        fisher.filter.mean(1, that.current, that.current, that.options.dimensions);
-
+        fisher.greyscale(pixels, that.working);
+        fisher.filter.mean(that.working, that.current, that.options.dimensions);
         that.frameTracker.track(that.current, that.previous);
 
         that.previous.set(that.current);

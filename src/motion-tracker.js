@@ -26,12 +26,13 @@ var fisher = fisher || {};
         threshold: Math.round(0.2 * 255),
 
         dimensions: {
-            width: 640,
-            height: 480
+            width: 320,
+            height: 240
         },
 
         members: {
             current: "@expand:fisher.buffer(1, {that}.options.dimensions)",
+            working: "@expand:fisher.buffer(1, {that}.options.dimensions)",
             previous: "@expand:fisher.buffer(1, {that}.options.dimensions)"
         },
 
@@ -90,11 +91,10 @@ var fisher = fisher || {};
     };
 
     fisher.motionTracker.track = function (that) {
-        var pixels = that.canvas.getPixels().data;
+        var pixels = that.canvas.getPixels();
 
-        fisher.greyscale(pixels, that.current);
-        fisher.filter.mean(1, that.current, that.current, that.options.dimensions);
-
+        fisher.greyscale(pixels, that.working);
+        fisher.filter.mean(that.working, that.current, that.options.dimensions);
         that.frameTracker.track(that.current, that.previous);
 
         that.previous.set(that.current);
