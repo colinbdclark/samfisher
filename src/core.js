@@ -6,7 +6,6 @@
  * github.com/colinbdclark/samfisher
  */
 
-/*global ivank*/
 /*jshint white: false, newcap: true, regexp: true, browser: true,
     forin: false, nomen: true, bitwise: false, maxerr: 100,
     indent: 4, plusplus: false, curly: true, eqeqeq: true,
@@ -79,20 +78,6 @@ var fisher = fisher || {};
 
     fisher.filter = {};
 
-    /**
-     * Gaussian-style box blur.
-     *
-     * @param Number radius the blur radius, in pixels
-     * @param Uint8ClampedArray source the greyscale buffer to blur
-     * @param Uint8ClampedArray target the target buffer
-     * @param Dimensions d the image dimensions
-     */
-    fisher.filter.gaussianBoxBlur = function (radius, source, target, d) {
-        ivank.gaussianBoxBlur(source, target,
-            d.width, d.height,
-            radius);
-    };
-
     fisher.filter.convolve = function (kernel, source, target, d) {
         var kW = Math.sqrt(kernel.length),
             halfKW = Math.floor(kW / 2),
@@ -132,6 +117,4 @@ var fisher = fisher || {};
         1/9, 1/9, 1/9,
         1/9, 1/9, 1/9
     ];
-
-
 }());

@@ -1,9 +1,9 @@
 {
   "name": "samfisher",
   "version": "1.0.0",
-  "description": "Boneheaded Web-based motion analysis",
+  "description": "Simple web-based motion detection",
   "author": "Colin Clark",
-  "homepage": "http://flockingjs.org/",
+  "homepage": "http://github.com/colinbdclark/samfisher",
   "repository": {
       "type": "git",
       "url": "git://github.com/colinbdclark/samfisher.git"
@@ -23,7 +23,7 @@
   },
   "dependencies": {
       "jquery": "2.1.4",
-      "infusion": "fluid-project/infusion#6f88f9f4b925a5d3da9e7cd8862e5bd4c9a02b45",
-      "bergson": "colinbdclark/bergson#infusion-2.x"
+      "infusion": "2.0.0-dev.20151007T134312Z.8c33cd4",
+      "bergson": "0.10.0"
   }
 }
