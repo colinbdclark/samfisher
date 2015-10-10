@@ -1,4 +1,4 @@
-/*! Sam Fisher Motion Detection 1.1.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
+/*! Sam Fisher Motion Detection 1.1.1, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
 /*! Sam Fisher Motion Detector 1.0.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher */
 /*
  * Sam Fisher Core
