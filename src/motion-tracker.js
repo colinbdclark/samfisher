@@ -92,11 +92,8 @@ var fisher = fisher || {};
 
     fisher.motionTracker.track = function (that) {
         var pixels = that.canvas.getPixels();
-
         fisher.greyscale(pixels, that.working);
-        fisher.filter.mean(that.working, that.current, that.options.dimensions);
         that.frameTracker.track(that.current, that.previous);
-
         that.previous.set(that.current);
     };
 
