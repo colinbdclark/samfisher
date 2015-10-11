@@ -1,4 +1,4 @@
-/*! Sam Fisher Motion Detection 1.1.1, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
+/*! Sam Fisher Motion Detection 1.1.2, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
 /*! Sam Fisher Motion Detector 1.0.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher */
 /*
  * Sam Fisher Core
@@ -477,7 +477,6 @@ var fisher = fisher || {};
 
         members: {
             current: "@expand:fisher.buffer(1, {that}.options.dimensions)",
-            working: "@expand:fisher.buffer(1, {that}.options.dimensions)",
             previous: "@expand:fisher.buffer(1, {that}.options.dimensions)"
         },
 
@@ -537,7 +536,7 @@ var fisher = fisher || {};
 
     fisher.motionTracker.track = function (that) {
         var pixels = that.canvas.getPixels();
-        fisher.greyscale(pixels, that.working);
+        fisher.greyscale(pixels, that.current);
         that.frameTracker.track(that.current, that.previous);
         that.previous.set(that.current);
     };
