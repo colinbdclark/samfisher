@@ -48,8 +48,8 @@ var fisher = fisher || {};
             motionIndex: {
                 funcName: "fisher.trackedRegion.motionIndex",
                 args: [
-                    "{arguments}.0",
-                    "{arguments}.1",
+                    "{arguments}.0", // Current frame
+                    "{arguments}.1", // Previous frame
                     "{that}.options"
                 ]
             }

@@ -9226,7 +9226,7 @@ Copyright 2007-2009 University of California, Berkeley
 Copyright 2010-2011 Lucendo Development Ltd.
 Copyright 2010 OCAD University
 Copyright 2011 Charly Molter
-Copyright 2014-2015 Raising the Floor (International)
+Copyright 2014-2015 Raising the Floor - International
 
 Licensed under the Educational Community License (ECL), Version 2.0 or the New
 BSD license. You may not use this file except in compliance with one these
@@ -9244,7 +9244,7 @@ var fluid = fluid || fluid_2_0_0_beta_1;
 (function ($, fluid) {
     "use strict";
 
-    fluid.version = "Infusion 2.0.0-dev";
+    fluid.version = "Infusion 2.0.0";
 
     // Export this for use in environments like node.js, where it is useful for
     // configuring stack trace behaviour
@@ -9308,7 +9308,7 @@ var fluid = fluid || fluid_2_0_0_beta_1;
         return fluid.transform(activityStack, renderer);
     };
 
-    // Definitions for ThreadLocals, the static and dynamic environment - lifted here from
+    // Definitions for ThreadLocals - lifted here from
     // FluidIoC.js so that we can issue calls to fluid.describeActivity for debugging purposes
     // in the core framework
 
@@ -9876,8 +9876,7 @@ var fluid = fluid || fluid_2_0_0_beta_1;
      * @param obj {Object} the Object to be searched through
      * @param value {Object} the value to be found. This will be compared against the object's
      * member using === equality.
-     * @return {String} The first key whose value matches the one supplied, or <code>null</code> if no
-     * such key is found.
+     * @return {String} The first key whose value matches the one supplied
      */
     fluid.keyForValue = function (obj, value) {
         return fluid.find(obj, function (thisValue, key) {
@@ -10287,10 +10286,7 @@ var fluid = fluid || fluid_2_0_0_beta_1;
     fluid.dumpEl = fluid.identity;
     fluid.renderTimestamp = fluid.identity;
 
-
-    /*** The Fluid Event system. ***/
-
-    fluid.registerNamespace("fluid.event");
+    /*** The Fluid instance id ***/
 
     // unsupported, NON-API function
     fluid.generateUniquePrefix = function () {
@@ -10309,6 +10305,10 @@ var fluid = fluid || fluid_2_0_0_beta_1;
     fluid.allocateGuid = function () {
         return fluid_prefix + (fluid_guid++);
     };
+
+    /*** The Fluid Event system. ***/
+
+    fluid.registerNamespace("fluid.event");
 
     // Fluid priority system for encoding relative positions of, e.g. listeners, transforms, options, in lists
 
@@ -10475,17 +10475,18 @@ var fluid = fluid || fluid_2_0_0_beta_1;
     // unsupported, non-API function
     fluid.event.invokeListener = function (listener, args) {
         if (typeof(listener) === "string") {
-            listener = fluid.event.resolveListener({globalName: listener}); // just resolves globals
+            listener = fluid.event.resolveListener(listener); // just resolves globals
         }
         return listener.apply(null, args);
     };
 
     // unsupported, NON-API function
     fluid.event.resolveListener = function (listener) {
-        if (listener.globalName) {
-            var listenerFunc = fluid.getGlobalValue(listener.globalName);
+        var listenerName = listener.globalName || (typeof(listener) === "string" ? listener : null);
+        if (listenerName) {
+            var listenerFunc = fluid.getGlobalValue(listenerName);
             if (!listenerFunc) {
-                fluid.fail("Unable to look up name " + listener.globalName + " as a global function");
+                fluid.fail("Unable to look up name " + listenerName + " as a global function");
             } else {
                 listener = listenerFunc;
             }
@@ -10973,9 +10974,9 @@ var fluid = fluid || fluid_2_0_0_beta_1;
     };
 
     /**
-     * Retrieves and stores a component's default settings centrally.
-     * @param {String} componentName the name of the component
-     * @param {Object} (optional) an container of key/value pairs to set
+     * Retrieves and stores a grade's configuration centrally.
+     * @param {String} gradeName the name of the grade whose options are to be read or written
+     * @param {Object} (optional) an object containing the options to be set
      */
 
     fluid.defaults = function (componentName, options) {
@@ -11873,7 +11874,7 @@ var fluid = fluid || fluid_2_0_0_beta_1;
      * Simple string template system.
      * Takes a template string containing tokens in the form of "%value".
      * Returns a new string with the tokens replaced by the specified values.
-     * Keys and values can be of any data type that can be coerced into a string. Arrays will work here as well.
+     * Keys and values can be of any data type that can be coerced into a string.
      *
      * @param {String}    template    a string (can be HTML) that contains tokens embedded into it
      * @param {object}    values      a collection of token keys and values
@@ -12385,6 +12386,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
 
         var record = {options: {}};
         fluid.model.applyChangeRequest(record, {segs: targetSegs, type: "ADD", value: source});
+        fluid.checkComponentRecord(record);
         return $.extend(record, {contextThat: contextThat, recordType: sourceType});
     };
 
@@ -12610,7 +12612,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
     
     fluid.parseExpectedOptionsPath = function (path, role) {
         var segs = fluid.model.parseEL(path);
-        if (segs.length > 1 && segs[0] !== "options") {
+        if (segs[0] !== "options") {
             fluid.fail("Error in options distribution path ", path, " - only " + role + " paths beginning with \"options\" are supported");
         }
         return segs.slice(1);
@@ -12971,11 +12973,11 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
     };
 
     fluid.resolveContext = function (context, that, fast) {
-        var instantiator = fluid.getInstantiator(that);
         if (context === "that") {
             return that;
         }
         var foundComponent;
+        var instantiator = fluid.globalInstantiator; // fluid.getInstantiator(that); // this hash lookup takes over 1us!
         if (fast) {
             var shadow = instantiator.idToShadow[that.id];
             return shadow.ownScope[context];
@@ -13259,18 +13261,14 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
         return expanded;
     };
 
-    fluid.localRecordExpected = ["type", "options", "args", "createOnEvent", "priority", "recordType"]; // last element unavoidably polluting
+    fluid.localRecordExpected = fluid.arrayToHash(["type", "options", "container", "createOnEvent", "priority", "recordType"]); // last element unavoidably polluting
 
-    fluid.checkComponentRecord = function (defaults, localRecord) {
-        var expected = fluid.arrayToHash(fluid.localRecordExpected);
-        fluid.each(defaults && defaults.argumentMap, function(value, key) {
-            expected[key] = true;
-        });
+    fluid.checkComponentRecord = function (localRecord) {
         fluid.each(localRecord, function (value, key) {
-            if (!expected[key]) {
+            if (!fluid.localRecordExpected[key]) {
                 fluid.fail("Probable error in subcomponent record ", localRecord, " - key \"" + key +
                     "\" found, where the only legal options are " +
-                    fluid.keys(expected).join(", "));
+                    fluid.keys(fluid.localRecordExpected).join(", "));
             }
         });
     };
@@ -13326,7 +13324,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
         $.extend(mergeRecords, initRecord.mergeRecords);
         // Do this here for gradeless components that were corrected by "localOptions"
         if (mergeRecords.subcomponentRecord) {
-            fluid.checkComponentRecord(defaults, mergeRecords.subcomponentRecord);
+            fluid.checkComponentRecord(mergeRecords.subcomponentRecord);
         }
         
         var expandList = fluid.mergeRecordsToList(that, mergeRecords);
@@ -13351,7 +13349,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
     
     // Maps a type name to the member name to be used for it at a particular path level where it is intended to be unique
     // Note that "." is still not supported within a member name
-    // unsupported, NON-API function
+    // supported, PUBLIC API function
     fluid.typeNameToMemberName = function (typeName) {
         return typeName.replace(/\./g, "_");
     };
@@ -13772,20 +13770,31 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
     };
 
     fluid.event.dispatchListener = function (that, listener, eventName, eventSpec, indirectArgs) {
+        if (eventSpec.args !== undefined && eventSpec.args !== fluid.NO_VALUE && !fluid.isArrayable(eventSpec.args)) {
+            eventSpec.args = fluid.makeArray(eventSpec.args);
+        }
+        listener = fluid.event.resolveListener(listener); // In theory this optimisation is too aggressive if global name is not defined yet
+        var dispatchPre = fluid.preExpand(eventSpec.args);
+        var localRecord = {};
+        var expandOptions = fluid.makeStackResolverOptions(that, localRecord, true);
         var togo = function () {
-            fluid.pushActivity("dispatchListener", "firing to listener to event named %eventName of component %that",
-                {eventName: eventName, that: that});
-                
-            var args = indirectArgs ? arguments[0] : fluid.makeArray(arguments);
-            if (eventSpec.args !== undefined && eventSpec.args !== fluid.NO_VALUE) {
-                if (!fluid.isArrayable(eventSpec.args)) {
-                    eventSpec.args = fluid.makeArray(eventSpec.args);
-                }
-                args = fluid.expandImmediate(eventSpec.args, that, {"arguments": args});
+            if (fluid.defeatLogging === false) {
+                fluid.pushActivity("dispatchListener", "firing to listener to event named %eventName of component %that",
+                    {eventName: eventName, that: that});
             }
-            var togo = fluid.event.invokeListener(listener, args);
-            
-            fluid.popActivity();
+
+            var args = indirectArgs ? arguments[0] : arguments, finalArgs;
+            localRecord["arguments"] = args;
+            if (eventSpec.args !== undefined && eventSpec.args !== fluid.NO_VALUE) {
+                fluid.expandImmediateImpl(dispatchPre, expandOptions);
+                finalArgs = dispatchPre.source;
+            } else {
+                finalArgs = args;
+            }
+            var togo = listener.apply(null, finalArgs);
+            if (fluid.defeatLogging === false) {
+                fluid.popActivity();
+            }
             return togo;
         };
         fluid.event.impersonateListener(listener, togo); // still necessary for FLUID-5254 even though framework's listeners now get explicit guids
@@ -13982,6 +13991,10 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
             fluid.fail("Badly-formed compact " + type + " record without matching parentheses: ", string);
         }
         if (openPos !== -1 && closePos !== -1) {
+            var trail = string.substring(closePos + 1);
+            if ($.trim(trail) !== "") {
+                fluid.fail("Badly-formed compact " + type + " - unexpected material following close parenthesis: " + trail);
+            }
             var prefix = string.substring(0, openPos);
             var body = string.substring(openPos + 1, closePos);
             var args = fluid.transform(body.split(","), $.trim, fluid.coerceToPrimitive);
@@ -14400,7 +14413,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
         if (options.recurse) { // only available in the path from fluid.expandOptions - this will be abolished in the end
             args = options.recurse([], args);
         } else {
-            expander = fluid.expandImmediate(expander, options.contextThat);
+            expander = fluid.expandImmediate(expander, options.contextThat, options.localRecord);
             args = expander.args;
         }
         var funcEntry = expander.func || expander.funcName;
@@ -15696,7 +15709,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
             spec.id = fluid.event.identifyListener(listener);
             spec.namespace = namespace;
             spec.softNamespace = softNamespace;
-            if (typeof(listener) === "string") { // TODO: replicate this nonsense from Fluid.js until we remember its purpose
+            if (typeof(listener) === "string") { // The reason for "globalName" is so that listener names can be resolved on first use and not on registration
                 listener = {globalName: listener};
             }
             spec.listener = listener;
@@ -17490,8 +17503,8 @@ var fisher = fisher || {};
             motionIndex: {
                 funcName: "fisher.trackedRegion.motionIndex",
                 args: [
-                    "{arguments}.0",
-                    "{arguments}.1",
+                    "{arguments}.0", // Current frame
+                    "{arguments}.1", // Previous frame
                     "{that}.options"
                 ]
             }
@@ -17634,7 +17647,7 @@ var fisher = fisher || {};
 
         listeners: {
             onNextFrame: [
-                "{canvas}.drawElement({that}.streamer.element)",
+                "{that}.canvas.drawElement({that}.streamer.element)",
                 "fisher.motionTracker.track({that})"
             ],
 
@@ -17644,10 +17657,6 @@ var fisher = fisher || {};
             ]
         }
     });
-
-    fisher.motionTracker.calcNumPixels = function (dimensions) {
-        return dimensions.height * dimensions.width;
-    };
 
     fisher.motionTracker.track = function (that) {
         var pixels = that.canvas.getPixels();

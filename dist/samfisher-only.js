@@ -375,8 +375,8 @@ var fisher = fisher || {};
             motionIndex: {
                 funcName: "fisher.trackedRegion.motionIndex",
                 args: [
-                    "{arguments}.0",
-                    "{arguments}.1",
+                    "{arguments}.0", // Current frame
+                    "{arguments}.1", // Previous frame
                     "{that}.options"
                 ]
             }
@@ -519,7 +519,7 @@ var fisher = fisher || {};
 
         listeners: {
             onNextFrame: [
-                "{canvas}.drawElement({that}.streamer.element)",
+                "{that}.canvas.drawElement({that}.streamer.element)",
                 "fisher.motionTracker.track({that})"
             ],
 
@@ -529,10 +529,6 @@ var fisher = fisher || {};
             ]
         }
     });
-
-    fisher.motionTracker.calcNumPixels = function (dimensions) {
-        return dimensions.height * dimensions.width;
-    };
 
     fisher.motionTracker.track = function (that) {
         var pixels = that.canvas.getPixels();
