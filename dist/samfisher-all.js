@@ -1,4 +1,4 @@
-/*! Sam Fisher Motion Detection 1.1.2, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
+/*! Sam Fisher Motion Detection 1.1.3, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
