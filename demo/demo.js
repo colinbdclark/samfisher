@@ -13,7 +13,7 @@
                         streamer: {
                             options: {
                                 source: {
-                                    name: "Live! Cam Sync"
+                                    name: "VF0520 Live! Cam Sync (041e:406c)"
                                 }
                             }
                         }
