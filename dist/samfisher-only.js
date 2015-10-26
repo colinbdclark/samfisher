@@ -1,4 +1,4 @@
-/*! Sam Fisher Motion Detection 1.1.3, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
+/*! Sam Fisher Motion Detection 1.2.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
 /*! Sam Fisher Motion Detector 1.0.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher */
 /*
  * Sam Fisher Core
@@ -388,7 +388,7 @@ var fisher = fisher || {};
 
     fisher.liveVideo.openStream = function (that) {
         var constraints = fisher.liveVideo.prepareConstraints(that);
-        
+
         navigator.getMedia(constraints,
             that.events.onStreamOpen.fire, that.events.onError.fire);
     };

@@ -1,4 +1,4 @@
-/*! Sam Fisher Motion Detection 1.1.3, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
+/*! Sam Fisher Motion Detection 1.2.0, Copyright 2015 Colin Clark | github.com/colinbdclark/samfisher*/
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -15791,7 +15791,7 @@ var fluid_2_0_0_beta_1 = fluid_2_0_0_beta_1 || {};
 
 })(jQuery, fluid_2_0_0_beta_1);
 
-/*! Bergson 0.9.4, Copyright 2015 Colin Clark | github.com/colinbdclark/bergson */
+/*! Bergson 0.11.0, Copyright 2015 Colin Clark | github.com/colinbdclark/bergson */
 
 /*
  * Bergson Clocks
@@ -15842,7 +15842,7 @@ var fluid = fluid || require("infusion"),
 
         invokers: {
             start: "fluid.identity()",
-            tick: "fluid.identity()",
+            tick: "fluid.notImplemented()",
             stop: "fluid.identity()"
         },
 
@@ -16646,7 +16646,7 @@ var fluid = fluid || require("infusion"),
 
         components: {
             clock: {
-                type: "berg.clock" // The real clock is in the other universe.
+                type: "berg.clock.offline" // The real clock is in the other universe.
             }
         },
 
@@ -17516,7 +17516,7 @@ var fisher = fisher || {};
 
     fisher.liveVideo.openStream = function (that) {
         var constraints = fisher.liveVideo.prepareConstraints(that);
-        
+
         navigator.getMedia(constraints,
             that.events.onStreamOpen.fire, that.events.onError.fire);
     };
