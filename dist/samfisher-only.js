@@ -304,6 +304,7 @@ var fisher = fisher || {};
         events: {
             onSourcesAvailable: null,
             onStreamOpen: null,
+            onStreamConnected: null,
             onReady: null,
             onError: null
         },
@@ -329,7 +330,16 @@ var fisher = fisher || {};
             onStreamOpen: [
                 "fisher.liveVideo.connectStreamToVideo({that}, {arguments}.0)",
                 "{that}.events.onReady.fire()"
-            ]
+            ],
+
+            onError: {
+                funcName: "fluid.log",
+                args: [
+                    fluid.logLevel.WARN,
+                    "An error occurred while trying to open a live video stream. Error was:",
+                    "{arguments}.0"
+                ]
+            }
         }
     });
 
@@ -344,7 +354,7 @@ var fisher = fisher || {};
 
     fisher.liveVideo.sourceIdForName = function (name, sources) {
         return fluid.find(sources, function (source) {
-            if (source.label.toLowerCase().indexOf(name.toLowerCase()) > -1) {
+            if (source.label === name) {
                 return source.id;
             }
         });
@@ -396,6 +406,7 @@ var fisher = fisher || {};
     fisher.liveVideo.connectStreamToVideo = function (that, stream) {
         that.element.src = window.URL.createObjectURL(stream);
         that.element.play();
+        that.events.onStreamConnected.fire();
     };
 }());
 
