@@ -7,7 +7,18 @@
 
         components: {
             motionTracker: {
-                type: "fisher.motionTracker"
+                type: "fisher.motionTracker",
+                options: {
+                    components: {
+                        streamer: {
+                            options: {
+                                source: {
+                                    name: "Live! Cam Sync"
+                                }
+                            }
+                        }
+                    }
+                }
             },
 
             workingCanvas: {

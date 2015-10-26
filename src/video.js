@@ -5,7 +5,7 @@
  * github.com/colinbdclark/samfisher
  */
 
-/*global require, navigator*/
+/*global require, navigator, MediaStreamTrack*/
 /*jshint white: false, newcap: true, regexp: true, browser: true,
     forin: false, nomen: true, bitwise: false, maxerr: 100,
     indent: 4, plusplus: false, curly: true, eqeqeq: true,
@@ -26,6 +26,15 @@ var fisher = fisher || {};
     fluid.defaults("fisher.liveVideo", {
         gradeNames: "fluid.modelComponent",
 
+        source: {
+            name: null,
+            id: null
+        },
+
+        model: {
+            sources: null
+        },
+
         constraints: {
             video: true,
             audio: false
@@ -36,6 +45,7 @@ var fisher = fisher || {};
         },
 
         events: {
+            onSourcesAvailable: null,
             onStreamOpen: null,
             onReady: null,
             onError: null
@@ -43,6 +53,19 @@ var fisher = fisher || {};
 
         listeners: {
             onCreate: [
+                "fisher.liveVideo.getSources({that})"
+            ],
+
+            onSourcesAvailable: [
+                {
+                    changePath: "sources",
+                    value: null
+                },
+                {
+                    changePath: "sources",
+                    value: "{arguments}.0"
+                },
+
                 "fisher.liveVideo.openStream({that})"
             ],
 
@@ -53,12 +76,63 @@ var fisher = fisher || {};
         }
     });
 
+    fisher.liveVideo.getSources = function (that) {
+        MediaStreamTrack.getSources(that.events.onSourcesAvailable.fire,
+            that.events.onError.fire);
+    };
+
     fisher.liveVideo.createVideo = function () {
         return document.createElement("video");
     };
 
+    fisher.liveVideo.sourceIdForName = function (name, sources) {
+        return fluid.find(sources, function (source) {
+            if (source.label.toLowerCase().indexOf(name.toLowerCase()) > -1) {
+                return source.id;
+            }
+        });
+    };
+
+    fisher.liveVideo.addIdConstraint = function (id, constraints) {
+        constraints.video = {
+            optional: [
+                {
+                    sourceId: id
+                }
+            ]
+        };
+
+        return constraints;
+    };
+
+    fisher.liveVideo.prepareConstraints = function (that) {
+        var source = that.options.source,
+            constraints = fluid.copy(that.options.constraints);
+
+        if (!source || (!source.id && !source.name)) {
+            return constraints;
+        }
+
+        if (source.name) {
+            var matchedId = fisher.liveVideo.sourceIdForName(source.name,
+                that.model.sources);
+
+            if (matchedId) {
+                fisher.liveVideo.addIdConstraint(matchedId, constraints);
+            }
+        }
+
+        if (source.id) {
+            fisher.liveVideo.addIdConstraint(source.id, constraints);
+        }
+
+        return constraints;
+    };
+
     fisher.liveVideo.openStream = function (that) {
-        navigator.getMedia(that.options.constraints,
+        var constraints = fisher.liveVideo.prepareConstraints(that);
+
+        navigator.getMedia(constraints,
             that.events.onStreamOpen.fire, that.events.onError.fire);
     };
 

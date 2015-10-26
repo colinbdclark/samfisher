@@ -24,6 +24,6 @@
   "dependencies": {
       "jquery": "2.1.4",
       "infusion": "2.0.0-dev.20151024T031903Z.3da18aa",
-      "bergson": "0.10.0"
+      "bergson": "0.11.0"
   }
 }
